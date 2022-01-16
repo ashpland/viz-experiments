@@ -1,4 +1,4 @@
-var map = L.map('map').setView([49.25594425452594, -123.1227826179464], 11);
+var map = L.map('map').setView([49.25594425452594, -123.1227826179464], 12);
 
 const baseTileUrl = "https://api.mapbox.com/styles/v1/opengb/ck5my9rac1j1k1io3qtz1z5tc/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1Ijoib3BlbmdiIiwiYSI6ImNrNXI0N3F0ZzA5N3Izc202MjE3djJ4bXkifQ.GLXBm-avEKLlZEmWL0EwIw"
 
@@ -73,10 +73,6 @@ function tryD3(properties) {
         .style("fill", d => color(d["total-ghg"]))
         .style("stroke", "white");
 
-    const x = d3.scaleLinear()
-        .domain([Math.min(...ghgs), Math.max(...ghgs)])
-        .range([20, 640]);
-
     const zoomUpdate = () =>
 
         markers
@@ -84,6 +80,26 @@ function tryD3(properties) {
                 map.latLngToLayerPoint([d.latitude, d.longitude]).x)
             .attr("cy", d => 
                 map.latLngToLayerPoint([d.latitude, d.longitude]).y);
+
+    
+    const lineScales = () => {
+        const inset = 50;
+
+        const xMin = map.containerPointToLayerPoint(inset);
+        const xMax = map.containerPointToLayerPoint(window.innerWidth - 2 * inset);
+        const y = map.containerPointToLayerPoint(window.innerHeight / 2);
+
+        const scales = {
+            x: d3
+            .scaleLinear()
+            .domain([Math.min(...ghgs), 800])
+            .range([xMin, xMax])
+            .clamp(true),
+            y: () => y
+        }
+        return scales;
+    };
+
 
     update = () => {
         if (showOnMap) {
@@ -99,11 +115,22 @@ function tryD3(properties) {
         } else {
             disableMap();
 
+            const inset = 50;
+            const min = map.containerPointToLayerPoint([inset, window.innerHeight / 2]);
+            const max = map.containerPointToLayerPoint([window.innerWidth - inset, window.innerHeight / 2]);
+
+            const x = d3
+                .scaleLinear()
+                .domain([Math.min(...ghgs), 800])
+                .range([min.x, max.x])
+                // .range([20, 200])
+                .clamp(true);
+
             markers
                 .transition()
                 .duration(2000)
                 .attr("cx", d => x(d["total-ghg"]))
-                .attr("cy", 500);
+                .attr("cy", min.y);
         }
 
     }
