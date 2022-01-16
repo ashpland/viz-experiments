@@ -6,7 +6,6 @@ body {
 #map {
     height: 100vh;
     width: 100vw;
-    display: none;
 }
 
 .leaflet-pane {
@@ -26,9 +25,4 @@ body {
     column-gap: 10px;
 
     z-index: 999999;
-}
-
-#graph {
-    height: 100vh;
-    width: 100vw;
 }
