@@ -20,8 +20,16 @@ let x;
 let y;
 let properties;
 let color;
+// let multiplier = 40;
+let multiplier = 1;
 
 function init(data) {
+    data = Array(multiplier)
+        .fill(data)
+        .flat()
+
+    console.log(data.length);
+
     properties = data.sort((lhs, rhs) => {
         return lhs["total-ghg"] > rhs["total-ghg"];
     });
@@ -187,4 +195,3 @@ document.getElementById("show-histo")
         disableMap();
         update();
     });
-
