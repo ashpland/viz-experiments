@@ -9,20 +9,14 @@ body {
 }
 
 .leaflet-pane {
-    transition: opacity 2s ease-in-out;
-    /* opacity: 0; */
+    transition: opacity 1s ease-in-out;
 }
 
-.leaflet-map-pane, .leaflet-map-pane .leaflet-overlay-pane {
-    opacity: 1;
-}
-    
 #buttons {
     position: fixed;
     bottom: 0;
     display: flex;
     padding: 10px;
     column-gap: 10px;
-
     z-index: 999999;
 }
