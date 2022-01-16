@@ -26,12 +26,12 @@ function loadJSONFile(callback) {
 function tryD3(properties) {
     const ghgs = properties.map(p => p["total-ghg"]);
     const gfas = properties.map(p => p["gfa"]);
-    const svg = d3.select("#dataviz_area")
-    const inner = svg
-        .attr("width", 500)
-        .attr("height", 500)
-        .append("g")
-        .attr("transform", "translate(" + 50 + "," + 20 + ")");
+
+    L.svg().addTo(map)
+
+    const overlay = d3.select(map.getPanes().overlayPane)
+
+    const svg = overlay.select('svg');
 
     const x = d3.scaleLinear()
         .domain([Math.min(...ghgs), Math.max(...ghgs)])
@@ -41,12 +41,13 @@ function tryD3(properties) {
         .domain([Math.min(...gfas), Math.max(...gfas)])
         .range([460, 0]);
     
-    inner.selectAll("property")
+    const markers = svg
+        .selectAll("property")
         .data(properties)
         .enter()
         .append("circle")
-        .attr("cx", d => x(d["total-ghg"]))
-        .attr("cy", d => y(d["gfa"]))
+        .attr("cx", d => map.latLngToLayerPoint([d.latitude, d.longitude]).x)
+        .attr("cy", d => map.latLngToLayerPoint([d.latitude, d.longitude]).y)
         .attr("r", 7)
         .style("fill", "blue")
         .style("stroke", "black");
@@ -54,16 +55,25 @@ function tryD3(properties) {
 
 
 
-    inner.append('g')
-    .attr("transform", "translate(0," + 460 + ")")
-    .call(d3.axisBottom(x));
-
-    inner.append('g')
+    // inner.append('g')
     // .attr("transform", "translate(0," + 460 + ")")
-    .call(d3.axisLeft(y));
+    // .call(d3.axisBottom(x));
 
+    // inner.append('g')
+    // // .attr("transform", "translate(0," + 460 + ")")
+    // .call(d3.axisLeft(y));
+
+
+const update = () => markers
+        .attr("cx", d => map.latLngToLayerPoint([d.latitude, d.longitude]).x)
+        .attr("cy", d => map.latLngToLayerPoint([d.latitude, d.longitude]).y);
+
+    map.on("zoomend", update)
+    map.on("moveend", update)
 
 }
+
+
 
 
 loadJSONFile(function(response) {
