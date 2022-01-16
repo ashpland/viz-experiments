@@ -25,10 +25,6 @@ showOnMap = true;
         document.getElementsByClassName("leaflet-control-container")[0].style.display = "inherit";
     }
 
-enableMap();
-
-
-
 
 function loadJSONFile(callback) {   
 
@@ -160,6 +156,8 @@ function tryD3(properties) {
         });
 
 
+            showOnMap = false;
+            update();
 }
 
 
