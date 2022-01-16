@@ -4,7 +4,7 @@ var map = L
 
 L.svg().addTo(map);
 const svg = d3.select(map.getPanes().overlayPane).select('svg');
-const inset = 50;
+const minHorizontalInset = 50;
 const radius = 5;
 const nbins = 30;
 
@@ -35,15 +35,7 @@ function init(data) {
     y = d3.scaleLinear()
         .domain([0, properties.length])
 
-    const min = map.containerPointToLayerPoint([
-        inset, 
-        window.innerHeight * 0.75]);
-    const max = map.containerPointToLayerPoint([
-        window.innerWidth - inset,
-        window.innerHeight * 0.25]);
-
-    x.range([min.x, max.x]);
-    y.range([min.y, max.y]);
+    updateScales();
 
     const histogram = d3.histogram()
         .domain(ghgDomain)
@@ -94,6 +86,26 @@ function init(data) {
         .style("stroke", "white"))
 };
 
+function updateScales() {
+    let inset;
+
+    if (window.innerWidth > 800) {
+        inset = ((window.innerWidth - 800) / 2) + minHorizontalInset;
+    } else {
+        inset = minHorizontalInset;
+    }
+
+    const min = map.containerPointToLayerPoint([
+        inset, 
+        window.innerHeight * 0.75]);
+    const max = map.containerPointToLayerPoint([
+        window.innerWidth - inset,
+        window.innerHeight * 0.25]);
+
+    x.range([min.x, max.x]);
+    y.range([min.y, max.y]);
+}
+
 function updateZoom() {
     svg.selectAll("circle")
         .attr("cx", d => map.latLngToLayerPoint([d.lat, d.lng]).x)
@@ -109,15 +121,7 @@ function update() {
             .attr("cy", d => map.latLngToLayerPoint([d.lat, d.lng]).y);
 
     } else {
-        const min = map.containerPointToLayerPoint([
-            inset, 
-            window.innerHeight * 0.75]);
-        const max = map.containerPointToLayerPoint([
-            window.innerWidth - inset,
-            window.innerHeight * 0.25]);
-
-        x.range([min.x, max.x]);
-        y.range([min.y, max.y]);
+        updateScales();
 
         const histogram = d3.histogram()
             .domain(ghgDomain)
