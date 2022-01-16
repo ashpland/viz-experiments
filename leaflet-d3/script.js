@@ -40,15 +40,18 @@ function tryD3(properties) {
     const y = d3.scaleLinear()
         .domain([Math.min(...gfas), Math.max(...gfas)])
         .range([460, 0]);
-
-    properties.map(p => {
-        inner.append("circle")
-        .attr("cx", x(p["total-ghg"]))
-        .attr("cy", y(p["gfa"]))
-        .attr("r", 10)
+    
+    inner.selectAll("property")
+        .data(properties)
+        .enter()
+        .append("circle")
+        .attr("cx", d => x(d["total-ghg"]))
+        .attr("cy", d => y(d["gfa"]))
+        .attr("r", 7)
         .style("fill", "blue")
         .style("stroke", "black");
-    });
+
+
 
 
     inner.append('g')
