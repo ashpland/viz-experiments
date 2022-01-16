@@ -4,6 +4,32 @@ const baseTileUrl = "https://api.mapbox.com/styles/v1/opengb/ck5my9rac1j1k1io3qt
 
 L.tileLayer(baseTileUrl).addTo(map);
 
+showOnMap = true;
+
+    const showHidePanes = (shouldHide) => {
+        const panes = Object.entries(map.getPanes())
+            .map(kv => kv[1])
+        panes.splice(3, 1);
+        panes.splice(0, 1);
+        panes.map(p => p.style.opacity = shouldHide ? 0 : 1);
+    };
+    const disableMap = () => {
+        showHidePanes(true);
+        map._handlers.map(h => h.disable());
+        document.getElementsByClassName("leaflet-control-container")[0].style.display = "none";
+    };
+
+    const enableMap = () => {
+        showHidePanes(false);
+        map._handlers.map(h => h.enable());
+        document.getElementsByClassName("leaflet-control-container")[0].style.display = "inherit";
+    }
+
+enableMap();
+
+
+
+
 function loadJSONFile(callback) {   
 
     var xmlobj = new XMLHttpRequest();
@@ -25,7 +51,6 @@ function loadJSONFile(callback) {
 
 function tryD3(properties) {
     const ghgs = properties.map(p => p["total-ghg"]);
-    const gfas = properties.map(p => p["gfa"]);
 
     L.svg().addTo(map)
 
@@ -33,43 +58,80 @@ function tryD3(properties) {
 
     const svg = overlay.select('svg');
 
-    const x = d3.scaleLinear()
-        .domain([Math.min(...ghgs), Math.max(...ghgs)])
-        .range([0, 460]);
+    const color = d3.scaleQuantize()
+        .domain([Math.min(...ghgs), 800])
+        .range(["#265c85", "#518f77", "#d6b647", "#dc6b37", "#a52f2f"]);
 
-    const y = d3.scaleLinear()
-        .domain([Math.min(...gfas), Math.max(...gfas)])
-        .range([460, 0]);
-    
     const markers = svg
         .selectAll("property")
         .data(properties)
         .enter()
         .append("circle")
-        .attr("cx", d => map.latLngToLayerPoint([d.latitude, d.longitude]).x)
-        .attr("cy", d => map.latLngToLayerPoint([d.latitude, d.longitude]).y)
+        // .attr("cx", d => map.latLngToLayerPoint([d.latitude, d.longitude]).x)
+        // .attr("cy", d => map.latLngToLayerPoint([d.latitude, d.longitude]).y)
         .attr("r", 7)
-        .style("fill", "blue")
-        .style("stroke", "black");
+        .style("fill", d => color(d["total-ghg"]))
+        .style("stroke", "white");
 
+    const x = d3.scaleLinear()
+        .domain([Math.min(...ghgs), Math.max(...ghgs)])
+        .range([20, 640]);
 
+    const zoomUpdate = () =>
 
+        markers
+            .attr("cx", d => 
+                map.latLngToLayerPoint([d.latitude, d.longitude]).x)
+            .attr("cy", d => 
+                map.latLngToLayerPoint([d.latitude, d.longitude]).y);
 
-    // inner.append('g')
-    // .attr("transform", "translate(0," + 460 + ")")
-    // .call(d3.axisBottom(x));
+    update = () => {
+        if (showOnMap) {
+            enableMap();
 
-    // inner.append('g')
-    // // .attr("transform", "translate(0," + 460 + ")")
-    // .call(d3.axisLeft(y));
+            markers
+                .transition()
+                .duration(2000)
+                .attr("cx", d => 
+                    map.latLngToLayerPoint([d.latitude, d.longitude]).x)
+                    .attr("cy", d => 
+                        map.latLngToLayerPoint([d.latitude, d.longitude]).y);
+        } else {
+            disableMap();
 
+            markers
+                .transition()
+                .duration(2000)
+                .attr("cx", d => x(d["total-ghg"]))
+                .attr("cy", 500);
+        }
 
-const update = () => markers
+    }
+
+    map.on("zoomend", zoomUpdate)
+
+    swap = () => {
+        showOnMap = !showOnMap
+        update()
+    }
+
+    markers
         .attr("cx", d => map.latLngToLayerPoint([d.latitude, d.longitude]).x)
         .attr("cy", d => map.latLngToLayerPoint([d.latitude, d.longitude]).y);
 
-    map.on("zoomend", update)
-    map.on("moveend", update)
+
+    document.getElementById("show-map")
+        .addEventListener("click", () => {
+            showOnMap = true;
+            update();
+        });
+
+    document.getElementById("show-line")
+        .addEventListener("click", () => {
+            showOnMap = false;
+            update();
+        });
+
 
 }
 
