@@ -22,7 +22,9 @@ let properties;
 let color;
 
 function init(data) {
-    properties = data;
+    properties = data.sort((lhs, rhs) => {
+        return lhs["total-ghg"] > rhs["total-ghg"];
+    });
     const ghgs = properties.map(p => p["total-ghg"]);
     ghgDomain = [Math.min(...ghgs), 800];
     color = d3.scaleQuantize()
